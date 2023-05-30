@@ -1,4 +1,4 @@
-# 2 Inżynieria wsteczna - Pokemon
+# 2 Inżynieria wsteczna - Reversing Bonanza
 
 ### Dołączone pliki
 Do projektu zostały dołączone [następujące pliki](task_files):
