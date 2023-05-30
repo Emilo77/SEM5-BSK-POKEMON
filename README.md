@@ -1,201 +1,64 @@
 # 2 Inżynieria wsteczna - Pokemon
 
 ### Dołączone pliki
-Do projektu zostały dołączone następujące pliki:
+Do projektu zostały dołączone [następujące pliki](task_files):
 <details><summary>:pushpin: Rozwiń </summary>
 <p>
-
-
+    
+- [assets/](task_files/assets)
+- [SDL2.dll](task_files/SDL2.dll)
+- [SDL2_image.dll](task_files/SDL2_image.dll)
+- [retask.exe](task_files/retask.exe)
+- [retask.pdb](task_files/retask.pdb)
 
 </p>
 </details>
 
+## Treść zadania
+
+Poniżej znajduje się opis zadania zaliczeniowego dla modułu **RE** (inżynieria wsteczna). Załączony plik stanowi prototyp gry na platformę Windows, którą należy przeanalizować i zmodyfikować tak aby wykonać poniższe zadania:
+
+- `[1pkt]` Znajdź flagę. Flaga jest w formacie `"FLAG{...}"`. Opisz, w jaki sposób udało się uzyskać flagę.
+- `[3pkt]` Flagę można również wyświetlić w grze. Opisz, jak sprawić, by niezmodyfikowana gra wyświetliła tę flagę.
+- `[2pkt]` Zmodyfikuj grę, aby można było chodzić przez ściany i inne obiekty, które normalnie blokują gracza.
+- `[4pkt]` Spraw, aby chodzić przez ściany dało się tylko trzymając klawisz `Shift` (wystarczy obsłużyć tylko jeden czyli lewy albo prawy).
+- `[1pkt]` (**trudne**) Dodaj NPC policjanta na północy mapy, który wytłumaczy graczowi, że przez szczelinę w czasoprzestrzeni, Viridian City przestało istnieć.
+- `[1pkt]` (**trudne**) Do rozmowy z policjantem dodaj również kwestie dialogowe wypowiadane przez gracza, w których ten rozpacza nad losem znajdującego się w tym mieście Garyego.
+
+W dwóch ostatnich (**trudnych**) podzadaniach możecie wykazać się kreatywnością, a pliki gry zawierają dodatkowy asset dla policjanta. Pamiętajcie, że tak jak w poprzednim zadaniu zaliczeniowym, za częściowe rozwiązania również można otrzymać punkty!
+
+Wysyłając rozwiązanie podeślijcie:
+
+- sprawozdanie, w którym dokładnie opisany będzie sposób rozwiązania poszczególnych zadań. Sprawozdanie najlepiej w formacie plaintekstowym - plik `.txt` lub Markdown (`.md`).
+- zmodyfikowany plik `.exe` z działającymi zmianami. Wystarczy podesłać jeden plik `.exe` ze wszystkimi zmianami. Binarka pozwalająca chodzić przez ściany z klawiszem `Shift` zalicza poprzednie zadanie, gdzie `Shift` nie był wymagany. Opis jak dokonać modyfikacji działającej bez Shifta jest dalej obowiązkowy.
+
+Zadanie można zrealizować zarówno za pomocą oprogramowania używanego w ramach laboratorium (wymienionego w mailu wprowadzającym do modułu `RE`), jak i jego odpowiedników. Nie ma więc problemu, jeśli zamiast dekompilatora wbudowanego w `IDA Free` użyjecie np. oprogramowania `Ghidra`.
+
+Dodatkowe porady odnośnie rozwiązywania zadania:
+
+- Środowisko Windows powinno mieć zainstalowany pakiet `Microsoft Visual C++ Redistributable` dla `Visual Studio 2019 x64` (plik instalacyjny: [https://aka.ms/vs/17/release/vc_redist.x64.exe](https://aka.ms/vs/17/release/vc_redist.x64.exe)). Aplikacja była testowana na Windows 10 i Windows 11. W razie problemów z uruchomieniem, prosimy o maila z wersją systemu operacyjnego i komunikatem błędu (może być dodatkowo screenshot).
+- Pamiętajcie, by wypakować wszystkie pliki z archiwum `.zip` zanim uruchomicie aplikację i przystąpicie do analizy.
+- Zadanie zawiera plik `.pdb` (symbole). Upewnijcie się, że są one dla was dostępne podczas analizy tj. widzicie nazwy funkcji i kliknęliście `Tak`/`Yes` w oknie `IDA` *"Do you want to look for this file at the specified path and the Microsoft Symbol Server?"*
+- Biblioteki `SDL` zawierają tzw. `TLS callbacks`, na które `x64dbg` nakłada breakpointy. W `Options -> Preferences` pozostawcie włączony tylko `Entry Breakpoint` i wyłączcie `System Breakpoint` i `TLS Callbacks`.
+- W `x64dbg` można nakładać patche przez `File -> Patch file (CTRL+P)`. Instrukcje można zmieniać za pomocą asemblera wbudowanego w `x64dbg` (spacją) lub wcześniej zasemblować w `nasm` i dodać binarnie przez `PPM -> Edit -> Binary Edit (CTRL+E)`.
+- Pamiętajcie, że nie całe miejsce w sekcji jest odzwierciedlone w pliku (wyrównanie pliku to `0x200`, a strony to `0x1000`). Jeśli nie wszystkie patche udało przełożyć na plik i dostaniecie komunikat np. `8/14 patches applied` (a nie `14/14`), oznacza to, że część patchy wykroczyła poza zakres sekcji dostępny w pliku.
+- Adresy pokazywane w `IDA` mają inny adres bazowy niż w `x64dbg`. Adresy względem początku podmapowanego pliku będą jednak takie same. Warto się tym posłużyć, gdy szukacie instrukcji tej samej instrukcji w `IDA` i w `x64dbg`. Okienko `Go to` wspiera tzw. `RVA`, więc chcąc znaleźć `0x140005D47` wystarczy, że podacie w `x64dbg` :`$0x5D47`
+
+<p align=center>
+<img src="md_assets/coding.png" alt="x64dbg_view" width="50%"/>
+</p>
+
+
+<p align=center>
+<img src="md_assets/game.png" alt="game_view" width="50%"/>
+</p>
 
 ### Rozwiązanie
 
 <details><summary>:pushpin: Rozwiń </summary>
 <p>
 
-- [atomic-volatile.cpp](atomic-volatile.cpp)
+Zaimplementowane rozwiązanie znajduje się [tutaj](src/solution.md)
 
 </p>
 </details>
-
-
-## 1. Znalezienie flagi poza grą:
-
-Uruchomiłem aplikację w programie `IDA`.
-
-Wykonałem komendę `Alt + t`, ręcznie to polecenie z zakładki `Search > Text ...` .
-
-Wpisałem do wyszukania frazę `Flag{`. W programie zostałem przeniesiony do fragmentu kodu:
-
-<img src="md_assets/flag_1.png" alt="drawing" width="50%"/>
-
-Z innych zdań zrozumiałem, że `27h` we fladze jest zamiennikiem na pojedynczy apostrof `'`.
-
-Zatem flagą jest **`FLAG{gr3pp!ng-thr0ugh-str1ngs?-isn't-th4t-t0o-ez?}`**.
-
-## 2. Znalezienie flagi w grze:
-
-W edytorze  `IDA` znalazłem wystąpienie nazwy `aFlagGr3ppNgThr` poprzez najechanie nazwy
-kursorem i naciśnięcie `X` (`IDA` pokazuje tak wszystkie wystąpienia frazy w kodzie):
-
-<img src="md_assets/flag_2.png" alt="drawing" width="50%"/>
-
-Przed analizą kodu trochę potestowałem grę. Zauważyłem, że tekst flagi w kodzie znajduje się obok
-tekstów występujących na zewnątrz w świecie gry. Postanowiłem sprawdzić `player_mailbox`:
-
-<img src="md_assets/flag_3.png" alt="drawing" width="50%"/>
-
-<img src="md_assets/flag_4.png" alt="drawing" width="50%"/>
-
-Zaciekawiła mnie funkcja `check`, która w programie przed kompilacją jest zapewne jakąś funkcją
-zwracającą `bool`.
-Na początku postanowiłem spatchować grę ze zmienioną instrukcją
-
-```angular2html
-jnz     short loc_140004B6F
-```
-
-na
-
-```angular2html
-jz     short loc_140004B6F
-```
-
-i sprawdzić w grze, co wyświetli się w skrzynce.
-
-<img src="md_assets/flag_5.png" alt="drawing" width="50%"/>
-
-Dzięki temu wiedziałem już dokładnie, gdzie powinna normalnie wyświetlić się flaga. Pozostaje
-znaleźć sposób w grze, aby instrukcja `jnz     short loc_140004B6F` wykonała skok.
-
-Z analizy kodu założyłem, że funkcje `check`, `mark` i `clear` wywołują się po pewnych postępach
-gry. Zrozumiałem, że aby flaga pokazała się w skrzynce, musi wywołać się funkcja `mark` z
-rejestrem `cl` o wartości 5.
-
-Sprawdziłem wystąpienia funkcji `mark`, gdzie rejestr `cl` będzie przyjmował wartość 5.
-Powodowała to funkcja `overworld_keypress`:
-
-<img src="md_assets/flag_6.png" alt="drawing" width="50%"/>
-
-Aby doszło do wykonania `mark`, wartość `edx` powinna być równa `0Eh`. Wtedy instrukcja `jnz`
-nie wykona skoku i później dojdzie do skoku do funkcji `mark`.
-
-Skoro funkcja zawiera `keypress` w nazwie, zapewne chodzi o naciśnięcie jakiejś sekwencji
-klawiszy na klawiaturze.
-
-Aby znaleźć sekwencję tych klawiszy, znalazłem dwie opcje:
-
-### Brute
-
-Postanowiłem uruchomić program w `IDA`, ustawiając breakpoint na `inc`. Następnie po kolei
-naciskałem każdy klawisz na klawiaturze, aż w końcu któryś zatrzymywał aplikację na breakpoincie.
-Na bieżąco zapisywałem klawisze, które powodowały zatrzymanie.
-
-<img src="md_assets/flag_7.png" alt="drawing" width="50%"/>
-
-Otrzymałem sekwencję `c-a-n-i-h-a-z-f-l-a-g-p-l-x`.
-
-### Odszyfrowanie sekwencji przez analizę kodu
-
-Zrozumiałem, że `dword_7FF7BF8C1A44` jest licznikiem, natomiast pod adresem `asc_7FF7BF8BA100`
-znajduje się ciąg zaszyfrowanych liter. Przy naciśnięciu klawisza zostaje wykonane porównanie
-wartości klawisza z elementem w tablicy o danym indeksie. W przypadku naciśnięcia
-odszyfrowanego pierwszego elementu tablicy licznik zwiększa się o 1, tak iterujemy się po całej
-tablicy.
-
-Tablica `asc_7FF7BF8BA100` zawiera wartości (w systemie 10):
-
-| 9   | 11  | 4   | 3   | 2   | 11  | 16  | 13  | 6   | 11  | 13  | 26  | 6   | 18  |
-|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-
-Każdy element jest xorowany z wartością `6A` (`106` w systemie 10). Ponieważ `xor` jest operacją
-odwracalną, postanowiłem zastosować go na tej tablicy:
-
-| Value         | 9   | 11  | 4   | 3   | 2   | 11  | 16  | 13  | 6   | 11  | 13  | 26  | 6   | 18  |
-|---------------|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
-| `xor` applied | 99  | 97  | 110 | 105 | 104 | 97  | 16  | 13  | 108 | 97  | 103 | 112 | 108 | 120 |
-| `ASCII` sign  | c   | a   | n   | i   | h   | a   | z   | f   | l   | a   | g   | p   | l   | x   |
-
-Po naciśnięciu sekwencji sprawdziłem skrzynkę pocztową na zewnątrz:
-
-<img src="md_assets/flag_8.png" alt="drawing" width="50%"/>
-
-Flaga pojawiła się bez modyfikacji gry.
-
-## Chodzenie przez obiekty
-
-Postanowiłem sprawdzić funkcję do obsługi poruszania się strzałkami, czyli
-`handle_movement_input` (dla wygody pozamieniałem później labele na bardziej zrozumiałe):
-
-<img src="md_assets/image_1.png" alt="drawing" width="50%"/>
-
-Sprawdziłem `player_step`.
-
-<img src="md_assets/image_2.png" alt="drawing" width="50%"/>
-
-Zrozumiałem, że funkcja `object_can_move` sprawdza, czy wykonanie
-ruchu jest legalne. Funkcja `object_can_move` ustawia wartość `al` na 1, jeżeli ruch jest
-legalny, wpp. ustawia `al` na 0.
-
-Nastepnie wykonuje się instrukcja skoku warunkowego. Możemy zmodyfikować tę instrukcję, aby
-nigdy nie skakała do `cant_move`, tylko aby zawsze przechodziła do `can_move`. W Idzie dokonałem
-zmiany instrukcji
-
-```asm
-jz      short cant_move
-```
-
-na instrukcję
-
-```asm
-jz      short can_move
-```
-
-Uruchomiłem program z naniesionym patchem, można było przechodzić przez obiekty.
-
-<img src="md_assets/image_3.png" alt="drawing" width="50%"/>
-
-<img src="md_assets/image_4.png" alt="drawing" width="50%"/>
-
-## Chodzenie przez obiekty z naciśniętym klawiszem shift
-
-Wykonujemy analogiczną metodę jak bez shifta, tylko w `player_step`, w instrukcji `jz      short
-cant_move` skaczemy do funkcji sprawdzającej, czy został naciśnięty `LShift`. Jeżeli został
-naciśnięty, zezwalamy na wykonanie ruchu i skaczemy do `can_move`, wpp. skaczemy do `cant_move`.
-
-Tym razem dokonywałem zmian w `x64dbg`, ponieważ łatwiej tam było zmieniać instrukcje i z
-jakiegoś powodu obszar wolnej pamięci programu był bardziej widoczny niż w `IDA`.
-
-Dokonałem następujących modyfikacji:
-
-<img src="md_assets/image_5.png" alt="drawing" width="50%"/>
-
-Skok warunkowy `jz      short cant_move` zmodyfikowałem tak, aby skakał parę adresów dalej, do
-kolejnego skoku na koniec programu.
-
-Na końcu programu dodałem funkcję sprawdzającą, czy został naciśnięty `LShift`. Napisałem ją
-analogicznie jak w funkcji `handle_movement_input`, która sprawdzała naciśnięcie klawiszy strzałek.
-
-<img src="md_assets/image_6.png" alt="drawing" width="50%"/>
-
-```asm
-; --- Funkcja sprawdzająca LShift na końcu programu ---
-handle_shift_input:
-    sub     rsp, 0x28
-    xor     ecx, ecx
-    call    qword ptr ds:[<&SDL_GetKeyboardState>]
-    cmp     byte ptr ds:[rax + 0xE1], 0x0
-    jz      shift_not_pressed
-    add     rsp, 0x28
-    jmp     can_move
-shift_not_pressed:
-    add     rsp, 0x28
-    jmp     cant_move
-
-```
-
-Naniosłem patcha na aplikację, gracz od teraz może podczas trzymania `LShift` przechodzić przez
-ściany.
