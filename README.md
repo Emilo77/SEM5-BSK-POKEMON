@@ -45,12 +45,12 @@ Dodatkowe porady odnośnie rozwiązywania zadania:
 - Adresy pokazywane w `IDA` mają inny adres bazowy niż w `x64dbg`. Adresy względem początku podmapowanego pliku będą jednak takie same. Warto się tym posłużyć, gdy szukacie instrukcji tej samej instrukcji w `IDA` i w `x64dbg`. Okienko `Go to` wspiera tzw. `RVA`, więc chcąc znaleźć `0x140005D47` wystarczy, że podacie w `x64dbg` :`$0x5D47`
 
 <p align=center>
-<img src="md_assets/coding.png" alt="x64dbg_view" width="50%"/>
+<img src="md_assets/coding.png" alt="x64dbg_view" width="100%"/>
 </p>
 
 
 <p align=center>
-<img src="md_assets/game.png" alt="game_view" width="50%"/>
+<img src="md_assets/game.png" alt="game_view" width="100%"/>
 </p>
 
 ### Rozwiązanie
